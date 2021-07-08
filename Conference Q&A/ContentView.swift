@@ -34,10 +34,48 @@ import SwiftUI
 
 struct ContentView: View {
 
-  var body: some View {
-    Text("Hello, world")
-  }
-}
+    // 1
+    @State var newQuestion: String = ""
+    
+    // TODO: Remove following line when socket is implemented.
+    @State var questions: [String] = []
+    
+    // 2
+    @ObservedObject var keyboard: Keyboard = .init()
+    @ObservedObject var socket: WebSocketController = .init()
+    
+    var body: some View {
+      // 3
+      VStack(spacing: 8) {
+        Text("Your asked questions:")
+        Divider()
+        // 4
+        // TODO: Update list when socket is implemented.
+        List(self.questions, id: \.self) { q in
+          VStack(alignment: .leading) {
+            Text(q)
+            Text("Status: Unanswered")
+              .foregroundColor(.red)
+          }
+        }
+        Divider()
+        // 5
+        TextField("Ask a new question", text: $newQuestion, onCommit: {
+          guard !self.newQuestion.isEmpty else { return }
+          self.socket.addQuestion(self.newQuestion)
+          // TODO: Remove following line when socket is implemented.
+          self.questions.append(self.newQuestion)
+          self.newQuestion = ""
+        })
+          .textFieldStyle(RoundedBorderTextFieldStyle())
+          .padding(.horizontal)
+          .padding(.bottom, keyboard.height)
+          .edgesIgnoringSafeArea(keyboard.height > 0 ? .bottom : [])
+      }
+      .padding(.vertical)
+      // 6
+      .alert(item: $socket.alertWrapper) { $0.alert }
+    }}
 
 
 struct ContentView_Previews: PreviewProvider {
